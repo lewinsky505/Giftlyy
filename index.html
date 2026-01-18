@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giftly 🎁</title>
+
+<style>
+:root{
+  --bg1:#ff6fb1;
+  --bg2:#8b5cf6;
+  --card:#ffffff;
+  --text:#5a004f;
+  --soft:#ffe4f1;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2));
+  font-family:"Segoe UI",system-ui;
+  transition:.4s;
+}
+body.dark{
+  --bg1:#120018;
+  --bg2:#2b003b;
+  --card:#1f002b;
+  --text:#ffe4f1;
+  --soft:#2b003b;
+}
+
+.container{width:100%;max-width:420px;padding:16px;}
+.app{
+  background:var(--card);
+  border-radius:28px;
+  padding:22px;
+  text-align:center;
+  box-shadow:0 30px 70px rgba(0,0,0,.25);
+}
+.top{display:flex;justify-content:center;gap:10px;margin-bottom:14px;}
+.top button{border:none;background:var(--soft);padding:8px 14px;border-radius:14px;font-size:13px;cursor:pointer;}
+h1{color:var(--text);margin-bottom:6px;}
+.sub{font-size:14px;color:#888;margin-bottom:18px;}
+input,textarea,select{width:100%;padding:14px;border-radius:16px;border:1px solid #ddd;margin-bottom:12px;font-size:14px;outline:none;}
+textarea{resize:none;height:90px;}
+.main{width:100%;padding:15px;border:none;border-radius:18px;background:linear-gradient(135deg,#ff6fb1,#8b5cf6);color:#fff;font-size:15px;cursor:pointer;}
+.preview{display:none;}
+.card{padding:26px;border-radius:26px;background:linear-gradient(135deg,#fff,#ffe6f2);box-shadow:0 0 45px rgba(255,105,180,.85);animation:glow 2.5s infinite alternate;}
+body.dark .card{background:linear-gradient(135deg,#2b003b,#1a0024);}
+@keyframes glow{from{box-shadow:0 0 20px rgba(255,105,180,.5)}to{box-shadow:0 0 55px rgba(255,105,180,1)}}
+.avatar{width:120px;height:120px;border-radius:50%;object-fit:cover;margin:0 auto 12px;border:4px solid #ff6fb1;display:none;}
+.cake{font-size:60px;animation:bounce 1.3s infinite;}
+@keyframes bounce{50%{transform:translateY(-10px)}}
+.name{font-size:22px;color:var(--text);margin-top:10px;}
+.msg{font-size:15px;color:var(--text);margin-top:10px;line-height:1.6;}
+.confetti{position:fixed;width:8px;height:8px;border-radius:50%;top:-10px;animation:fall 4s linear forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- ===== FORM ===== -->
+<div class="app" id="form">
+  <div class="top">
+    <button onclick="toggleTheme()">🌙</button>
+    <button onclick="toggleLang()">AR / EN</button>
+  </div>
+
+  <h1>🎁 Giftly</h1>
+  <div class="sub" id="sub">اصنع هدية عيد ميلاد رقمية</div>
+
+  <input id="name" placeholder="اسم الشخص 🎀">
+  <textarea id="message" placeholder="اكتب رسالة جميلة 💌"></textarea>
+
+  <select id="theme">
+    <option value="pink">🌸 وردي</option>
+    <option value="purple">💜 بنفسجي</option>
+    <option value="blue">💙 أزرق</option>
+    <option value="green">💚 أخضر</option>
+  </select>
+
+  <input type="file" id="image" accept="image/*">
+
+  <select id="music">
+    <option value="">🎵 بدون موسيقى</option>
+    <option value="happy">🎵 Happy Birthday</option>
+    <option value="lofi">🎵 Lo-fi Chill</option>
+  </select>
+
+  <button class="main" onclick="createGift()">🎉 إنشاء الهدية</button>
+</div>
+
+<!-- ===== PREVIEW ===== -->
+<div class="app preview" id="preview">
+  <div class="card" id="card">
+    <img id="pImg" class="avatar">
+    <div class="cake">🎂</div>
+    <div class="name" id="pName"></div>
+    <div class="msg" id="pMsg"></div>
+  </div>
+
+  <button class="main" style="margin-top:16px" onclick="saveGift()">📸 حفظ كصورة</button>
+  <div style="margin-top:12px;font-size:13px" id="share"></div>
+  <button class="main" style="margin-top:16px" onclick="location.reload()">🎁 هدية أخرى</button>
+</div>
+
+<audio id="audio" loop></audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+let lang="ar";
+let imgData="";
+
+document.getElementById("image").addEventListener("change",e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>imgData=reader.result;
+  reader.readAsDataURL(file);
+});
+
+function createGift(){
+  const name=document.getElementById("name").value || "شخص رائع";
+  const msg=document.getElementById("message").value || "عيد ميلاد سعيد 💖";
+  const theme=document.getElementById("theme").value;
+  const music=document.getElementById("music").value;
+
+  applyTheme(theme);
+
+  document.getElementById("form").style.display="none";
+  document.getElementById("preview").style.display="block";
+
+  document.getElementById("pName").innerText="🎉 Happy Birthday "+name;
+  document.getElementById("pMsg").innerText=msg;
+
+  if(imgData){
+    const img=document.getElementById("pImg");
+    img.src=imgData;
+    img.style.display="block";
+  }
+
+  playMusic(music);
+  confetti();
+
+  document.getElementById("share").innerText="🔗 شارك الرابط:\n"+location.href;
+}
+
+function applyTheme(t){
+  if(t==="purple") setColors("#a855f7","#5b21b6");
+  if(t==="blue") setColors("#60a5fa","#2563eb");
+  if(t==="green") setColors("#4ade80","#15803d");
+  if(t==="pink") setColors("#ff6fb1","#8b5cf6");
+}
+
+function setColors(a,b){
+  document.documentElement.style.setProperty("--bg1",a);
+  document.documentElement.style.setProperty("--bg2",b);
+}
+
+function confetti(){
+  for(let i=0;i<70;i++){
+    const c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=Math.random()*100+"vw";
+    c.style.background=`hsl(${Math.random()*360},100%,70%)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),4000);
+  }
+}
+
+function toggleTheme(){
+  document.body.classList.toggle("dark");
+}
+
+function toggleLang(){
+  lang=lang==="ar"?"en":"ar";
+  document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  document.getElementById("sub").innerText=
+    lang==="ar"?"اصنع هدية عيد ميلاد رقمية":"Create a digital birthday gift";
+}
+
+// ===== موسيقى =====
+function playMusic(m){
+  const audio=document.getElementById("audio");
+  audio.pause();
+  audio.src="";
+  if(m==="happy") audio.src="https://cdn.pixabay.com/audio/2022/03/15/audio_3c7a5a6b8c.mp3";
+  if(m==="lofi") audio.src="https://cdn.pixabay.com/audio/2022/05/05/audio_7b1fa7c7.mp3";
+  if(audio.src) audio.play();
+}
+
+// ===== حفظ كصورة =====
+function saveGift(){
+  const card=document.getElementById("card");
+  html2canvas(card).then(canvas=>{
+    const link=document.createElement("a");
+    link.download="giftly.png";
+    link.href=canvas.toDataURL();
+    link.click();
+  });
+}
+</script>
+
+</body>
+</html>
